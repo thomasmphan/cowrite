@@ -44,21 +44,21 @@ If implementation fails or gets complex:
 
 ## Tech Stack
 
-| Layer | Technology | Notes |
-|---|---|---|
-| Frontend | React + TypeScript (Vite) | Thomas has some React experience, needs refreshing |
-| Rich Text Editor | TipTap (ProseMirror-based) | Handles editor complexity, we focus on collaboration layer |
-| Backend | Node + Fastify + TypeScript | Modern, typed, built-in validation |
-| Real-time | Socket.io | Industry standard, works well with Fastify |
-| Database | PostgreSQL | Via Docker locally, Neon free tier for prod |
-| ORM | Prisma 7 | Uses driver adapters (`@prisma/adapter-pg` + `pg`). DB config lives in `server/prisma.config.ts`, not `schema.prisma`. Raw SQL for Postgres-specific features (full-text search, JSONB, LISTEN/NOTIFY). |
-| Auth | JWT (with OAuth Google/GitHub added later) | Custom implementation to learn auth properly |
-| AI | RAG pipeline — chat with your documents | OpenAI API for embeddings + completion |
-| Testing | Vitest | Jest-compatible API, native Vite/TS support |
-| Linting | ESLint + Prettier | Enforced from day one |
-| Containerization | Docker + Docker Compose | From day one — single `docker compose up` to run everything |
-| CI/CD | GitHub Actions | Lint, type-check, test on every PR |
-| Monorepo | npm workspaces | Shared types between frontend and backend |
+| Layer            | Technology                                 | Notes                                                                                                                                                                                                   |
+| ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend         | React + TypeScript (Vite)                  | Thomas has some React experience, needs refreshing                                                                                                                                                      |
+| Rich Text Editor | TipTap (ProseMirror-based)                 | Handles editor complexity, we focus on collaboration layer                                                                                                                                              |
+| Backend          | Node + Fastify + TypeScript                | Modern, typed, built-in validation                                                                                                                                                                      |
+| Real-time        | Socket.io                                  | Industry standard, works well with Fastify                                                                                                                                                              |
+| Database         | PostgreSQL                                 | Via Docker locally, Neon free tier for prod                                                                                                                                                             |
+| ORM              | Prisma 7                                   | Uses driver adapters (`@prisma/adapter-pg` + `pg`). DB config lives in `server/prisma.config.ts`, not `schema.prisma`. Raw SQL for Postgres-specific features (full-text search, JSONB, LISTEN/NOTIFY). |
+| Auth             | JWT (with OAuth Google/GitHub added later) | Custom implementation to learn auth properly                                                                                                                                                            |
+| AI               | RAG pipeline — chat with your documents    | OpenAI API for embeddings + completion                                                                                                                                                                  |
+| Testing          | Vitest                                     | Jest-compatible API, native Vite/TS support                                                                                                                                                             |
+| Linting          | ESLint + Prettier                          | Enforced from day one                                                                                                                                                                                   |
+| Containerization | Docker + Docker Compose                    | From day one — single `docker compose up` to run everything                                                                                                                                             |
+| CI/CD            | GitHub Actions                             | Lint, type-check, test on every PR                                                                                                                                                                      |
+| Monorepo         | npm workspaces                             | Shared types between frontend and backend                                                                                                                                                               |
 
 ---
 
@@ -227,17 +227,20 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`, `perf`
 ### What to Test
 
 **Always test (integration):**
+
 - API endpoints — request in, response out, database state verified
 - Auth flows — registration, login, token refresh, protected routes
 - Permission checks — role-based access control enforcement
 - WebSocket events — connection, disconnection, message broadcasting
 
 **Always test (unit):**
+
 - RAG pipeline — chunking logic, retrieval scoring
 - Complex business logic — permission resolution, document merge conflicts
 - Utility functions — anything non-trivial in `shared/utils`
 
 **Don't test (yet):**
+
 - React components — UI changes too fast early on
 - Simple CRUD with no logic — Prisma handles the query, nothing to test
 - Third-party library behavior
@@ -301,6 +304,7 @@ export const config = {
 ```
 
 Files:
+
 - `.env.example` — committed, shows required vars with placeholder values
 - `.env` — git-ignored, actual local values
 - Docker Compose passes env vars to containers
@@ -326,6 +330,7 @@ Never use `console.log` — always use the Fastify logger instance.
 ### CI/CD (GitHub Actions)
 
 On every push/PR:
+
 1. Lint (`eslint`)
 2. Type-check (`tsc --noEmit`)
 3. Test (`vitest run`)
@@ -341,19 +346,24 @@ Every significant technical decision gets a short ADR in `docs/adr/`. Format:
 # ADR-NNN: Title
 
 ## Status
+
 Accepted | Superseded | Deprecated
 
 ## Context
+
 What problem are we solving? What constraints exist?
 
 ## Decision
+
 What did we choose and why?
 
 ## Consequences
+
 What are the tradeoffs? What does this make easier/harder?
 ```
 
 Decisions already made that need ADRs:
+
 - Monorepo with npm workspaces (shared types, single repo)
 - Fastify over Express (TypeScript support, built-in validation, performance)
 - JWT auth over session-based (stateless, fits separated frontend/backend)
@@ -370,6 +380,7 @@ Decisions already made that need ADRs:
 Build incrementally. Each phase should be fully working and tested before moving on.
 
 ### Phase 1: Foundation
+
 - [ ] Monorepo setup (npm workspaces, shared types package)
 - [ ] Docker Compose (Fastify + Postgres)
 - [ ] Fastify app scaffold with health check, logging, error handling
@@ -379,29 +390,34 @@ Build incrementally. Each phase should be fully working and tested before moving
 - [ ] CI pipeline (GitHub Actions)
 
 ### Phase 2: Auth
+
 - [ ] User registration + login endpoints
 - [ ] JWT access + refresh token flow
 - [ ] Auth middleware (protect routes)
 - [ ] Integration tests for all auth flows
 
 ### Phase 3: Documents (CRUD)
+
 - [ ] Create, read, update, delete documents
 - [ ] Document ownership
 - [ ] Fastify schema validation on all endpoints
 - [ ] Integration tests
 
 ### Phase 4: Permissions & Sharing
+
 - [ ] Role model (owner, editor, viewer)
 - [ ] Share document with other users
 - [ ] Permission middleware (check role before allowing action)
 - [ ] Integration tests for permission enforcement
 
 ### Phase 5: Rich Text Editor
+
 - [ ] TipTap integration in React
 - [ ] Save/load document content
 - [ ] Basic formatting toolbar
 
 ### Phase 6: Real-time Collaboration
+
 - [ ] Socket.io setup (Fastify plugin)
 - [ ] Document rooms (join/leave on open/close)
 - [ ] Broadcast edits to other users in the room
@@ -411,6 +427,7 @@ Build incrementally. Each phase should be fully working and tested before moving
 - [ ] Tests for WebSocket events
 
 ### Phase 7: AI — RAG Pipeline
+
 - [ ] Document chunking strategy
 - [ ] Embeddings generation (OpenAI API)
 - [ ] Vector storage (pgvector extension in Postgres)
@@ -420,6 +437,7 @@ Build incrementally. Each phase should be fully working and tested before moving
 - [ ] Tests for chunking and retrieval logic
 
 ### Phase 8: Production Polish
+
 - [ ] Rate limiting on all routes
 - [ ] OAuth login (GitHub, then Google)
 - [ ] README with architecture diagram, setup instructions, demo link

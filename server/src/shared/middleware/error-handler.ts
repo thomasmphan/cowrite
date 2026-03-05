@@ -3,8 +3,8 @@ import { AppError } from '../utils/errors.js';
 
 export function errorHandler(
   error: FastifyError,
-  request : FastifyRequest,
-  reply: FastifyReply
+  request: FastifyRequest,
+  reply: FastifyReply,
 ): void {
   if (error instanceof AppError) {
     request.log.warn({ error }, error.message);

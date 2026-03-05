@@ -1,5 +1,7 @@
 {
   "name": "cowrite",
+  "version": "0.0.1",
+  "type": "module",
   "private": true,
   "workspaces": [
     "packages/*",
@@ -10,9 +12,32 @@
     "dev:server": "npm run dev -w server",
     "build": "npm run build -w @cowrite/shared && npm run build -w server",
     "test": "npm run test -w server",
-    "test:server": "npm run test -w server"
+    "test:server": "npm run test -w server",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{ts,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,json,md}\"",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.2",
+    "prettier": "^3.8.1",
+    "typescript-eslint": "^8.56.1"
   }
 }
