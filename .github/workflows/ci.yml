@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Type-check, build, test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cowrite
+          POSTGRES_PASSWORD: cowrite
+          POSTGRES_DB: cowrite
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U cowrite"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    
+    env:
+      DATABASE_URL: postgresql://cowrite:cowrite@localhost:5432/cowrite
+      JWT_SECRET: ci-test-secret
+      NODE_ENV: test
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      
+      - run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: server
+      
+      - name: Run migrations
+        run: npx prisma migrate deploy
+        working-directory: server
+      
+      - name: Type-check shared
+        run: npm run build -w @cowrite/shared
+      
+      - name: Type-check server
+        run: npx tsc --noEmit
+        working-directory: server
+      
+      - name: Build server
+        run: npm run build -w server
+      
+      - name: Run tests
+        run: npm test
