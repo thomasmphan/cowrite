@@ -1,12 +1,13 @@
 import Fastify from 'fastify';
 import { errorHandler } from './shared/middleware/error-handler.js';
 import prismaPlugin from './shared/plugins/prisma.js';
+import { env } from './config/env.js';
 
 export function buildApp() {
   const app = Fastify({
     logger: {
       transport:
-        process.env.NODE_ENV !== 'production'
+        env.nodeEnv !== 'production'
           ? { target: 'pino-pretty' }
           : undefined,
     },
