@@ -51,7 +51,7 @@ If implementation fails or gets complex:
 | Backend | Node + Fastify + TypeScript | Modern, typed, built-in validation |
 | Real-time | Socket.io | Industry standard, works well with Fastify |
 | Database | PostgreSQL | Via Docker locally, Neon free tier for prod |
-| ORM | Prisma | With raw SQL for Postgres-specific features (full-text search, JSONB, LISTEN/NOTIFY) |
+| ORM | Prisma 7 | Uses driver adapters (`@prisma/adapter-pg` + `pg`). DB config lives in `server/prisma.config.ts`, not `schema.prisma`. Raw SQL for Postgres-specific features (full-text search, JSONB, LISTEN/NOTIFY). |
 | Auth | JWT (with OAuth Google/GitHub added later) | Custom implementation to learn auth properly |
 | AI | RAG pipeline — chat with your documents | OpenAI API for embeddings + completion |
 | Testing | Vitest | Jest-compatible API, native Vite/TS support |

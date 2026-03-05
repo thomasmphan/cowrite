@@ -1,1 +1,1 @@
-export type { User, Document } from './types/index.js';
+export type { User, Document, JsonValue } from './types/index.js';

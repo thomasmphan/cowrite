@@ -1,7 +1,9 @@
+import type { JsonValue } from './json.js';
+
 export interface Document {
   id: string;
   title: string;
-  content: unknown;
+  content: JsonValue;
   ownerId: string;
   createdAt: Date;
   updatedAt: Date;
