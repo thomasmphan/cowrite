@@ -4,12 +4,16 @@ import pg from 'pg';
 import fp from 'fastify-plugin';
 import { FastifyInstance } from 'fastify';
 
-const connectionString = process.env['DATABASE_URL'] || '';
-const pool = new pg.Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
-
 export default fp(async (app: FastifyInstance) => {
+  const connectionString = process.env['DATABASE_URL'];
+  if (!connectionString) {
+    throw new Error('DATABASE_URL environment variable is required');
+  }
+  
+  const pool = new pg.Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
+  const prisma = new PrismaClient({ adapter });
+
   await prisma.$connect();
   app.log.info('Connected to database');
 

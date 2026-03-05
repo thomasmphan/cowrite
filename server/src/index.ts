@@ -1,5 +1,10 @@
-import 'dotenv/config';
-import { buildApp } from "./app.js";
+import { config } from 'dotenv';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { buildApp } from './app.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: resolve(__dirname, '../../.env') });
 
 const app = buildApp();
 
