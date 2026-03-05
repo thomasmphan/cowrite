@@ -25,5 +25,6 @@ COPY --from=build /app/server/dist ./server/dist
 COPY packages/shared/package.json ./packages/shared/
 COPY server/package.json ./server/
 COPY package.json ./
+USER node
 EXPOSE 3000
 CMD ["node", "server/dist/index.js"]
