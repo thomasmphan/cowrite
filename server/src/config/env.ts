@@ -20,7 +20,7 @@ export const env = {
     url: requireEnv('DATABASE_URL'),
   },
   jwt: {
-    secret: process.env['JWT_SECRET'] || '',
+    secret: requireEnv('JWT_SECRET'),
     expiresIn: process.env['JWT_EXPIRES_IN'] || '15m',
     refreshExpiresIn: process.env['JWT_REFRESH_EXPIRES_IN'] || '7d',
   },
