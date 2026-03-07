@@ -1,5 +1,7 @@
 import { Type, Static } from '@sinclair/typebox';
 
+// --- Request schemas ---
+
 export const RegisterBodySchema = Type.Object({
   email: Type.String({ format: 'email' }),
   password: Type.String({ minLength: 8 }),
@@ -20,6 +22,8 @@ export const RefreshBodySchema = Type.Object({
 });
 
 export type RefreshBody = Static<typeof RefreshBodySchema>;
+
+// --- Response schemas ---
 
 export const AuthResponseSchema = Type.Object({
   accessToken: Type.String(),
