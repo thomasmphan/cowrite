@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { NotFoundError } from '../../shared/utils/errors.js';
+import { ForbiddenError, NotFoundError } from '../../shared/utils/errors.js';
 
 interface DocumentResult {
   id: string;
@@ -23,17 +23,31 @@ export class DocumentsService {
     });
   }
 
-  async list(ownerId: string): Promise<DocumentResult[]> {
+  async list(userId: string): Promise<DocumentResult[]> {
     return this.prisma.document.findMany({
-      where: { ownerId },
+      where: {
+        OR: [{ ownerId: userId }, { shares: { some: { userId } } }],
+      },
       orderBy: { updatedAt: 'desc' },
     });
   }
 
-  async getById(id: string, ownerId: string): Promise<DocumentResult> {
+  async getById(id: string, userId: string): Promise<DocumentResult> {
     const document = await this.prisma.document.findUnique({ where: { id } });
 
-    if (!document || document.ownerId !== ownerId) {
+    if (!document) {
+      throw new NotFoundError('Document not found');
+    }
+
+    if (document.ownerId === userId) {
+      return document;
+    }
+
+    const share = await this.prisma.documentShare.findUnique({
+      where: { documentId_userId: { documentId: id, userId } },
+    });
+
+    if (!share) {
       throw new NotFoundError('Document not found');
     }
 
@@ -42,13 +56,27 @@ export class DocumentsService {
 
   async update(
     id: string,
-    ownerId: string,
+    userId: string,
     data: { title?: string; content?: unknown },
   ): Promise<DocumentResult> {
     const document = await this.prisma.document.findUnique({ where: { id } });
 
-    if (!document || document.ownerId !== ownerId) {
+    if (!document) {
       throw new NotFoundError('Document not found');
+    }
+
+    if (document.ownerId !== userId) {
+      const share = await this.prisma.documentShare.findUnique({
+        where: { documentId_userId: { documentId: id, userId } },
+      });
+
+      if (!share) {
+        throw new NotFoundError('Document not found');
+      }
+
+      if (share.role !== 'EDITOR') {
+        throw new ForbiddenError('You do not have permission to edit this document');
+      }
     }
 
     return this.prisma.document.update({

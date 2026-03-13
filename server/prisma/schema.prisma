@@ -14,8 +14,9 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  documents     Document[]
-  refreshTokens RefreshToken[]
+  documents      Document[]
+  documentShares DocumentShare[]
+  refreshTokens  RefreshToken[]
 
   @@map("users")
 }
@@ -40,7 +41,29 @@ model Document {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  shares DocumentShare[]
+
   owner User @relation(fields: [ownerId], references: [id])
 
   @@map("documents")
+}
+
+enum ShareRole {
+  EDITOR
+  VIEWER
+}
+
+model DocumentShare {
+  id         String    @id @default(uuid())
+  documentId String    @map("document_id")
+  userId     String    @map("user_id")
+  role       ShareRole
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, userId])
+  @@index([userId])
+  @@map("document_shares")
 }

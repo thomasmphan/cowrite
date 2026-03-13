@@ -4,6 +4,7 @@ import { errorHandler } from './shared/middleware/error-handler.js';
 import prismaPlugin from './shared/plugins/prisma.js';
 import { authRoutes } from './features/auth/auth.routes.js';
 import { documentRoutes } from './features/documents/documents.routes.js';
+import { shareRoutes } from './features/shares/shares.routes.js';
 import { env } from './config/env.js';
 
 export function buildApp(): FastifyInstance {
@@ -25,6 +26,7 @@ export function buildApp(): FastifyInstance {
 
   app.register(authRoutes, { prefix: '/api/auth' });
   app.register(documentRoutes, { prefix: '/api/documents' });
+  app.register(shareRoutes, { prefix: '/api/documents/:id/shares' });
 
   return app;
 }

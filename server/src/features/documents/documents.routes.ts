@@ -17,6 +17,7 @@ export async function documentRoutes(app: FastifyInstance): Promise<void> {
 
   const documentsService = new DocumentsService(app.prisma);
 
+  // POST /api/documents
   app.post<{ Body: CreateDocumentBody }>(
     '/',
     {
@@ -35,6 +36,7 @@ export async function documentRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
+  // GET /api/documents
   app.get(
     '/',
     {
@@ -47,6 +49,7 @@ export async function documentRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
+  // GET /api/documents/:id
   app.get<{ Params: DocumentParams }>(
     '/:id',
     {
@@ -60,6 +63,7 @@ export async function documentRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
+  // PATCH /api/documents/:id
   app.patch<{ Params: DocumentParams; Body: UpdateDocumentBody }>(
     '/:id',
     {
@@ -74,6 +78,7 @@ export async function documentRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
+  // DELETE /api/documents/:id
   app.delete<{ Params: DocumentParams }>(
     '/:id',
     {

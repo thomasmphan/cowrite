@@ -15,6 +15,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     app.jwt.sign(payload, options),
   );
 
+  // POST /api/auth/register
   app.post<{ Body: RegisterBody }>(
     '/register',
     {
@@ -30,6 +31,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
+  // POST /api/auth/login
   app.post<{ Body: LoginBody }>(
     '/login',
     {
@@ -44,6 +46,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
+  // POST /api/auth/refresh
   app.post<{ Body: RefreshBody }>(
     '/refresh',
     {
@@ -58,6 +61,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
+  // POST /api/auth/logout
   app.post<{ Body: RefreshBody }>(
     '/logout',
     {

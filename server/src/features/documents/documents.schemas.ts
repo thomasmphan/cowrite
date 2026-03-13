@@ -23,6 +23,7 @@ export const DocumentParamsSchema = Type.Object({
 export type DocumentParams = Static<typeof DocumentParamsSchema>;
 
 // --- Response schemas ---
+
 const DocumentSchema = Type.Object({
   id: Type.String(),
   title: Type.String(),

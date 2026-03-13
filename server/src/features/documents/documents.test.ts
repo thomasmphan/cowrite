@@ -31,6 +31,7 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
+  await app.prisma.documentShare.deleteMany();
   await app.prisma.refreshToken.deleteMany();
   await app.prisma.document.deleteMany();
   await app.prisma.user.deleteMany();
