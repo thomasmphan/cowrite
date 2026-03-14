@@ -465,3 +465,23 @@ Build incrementally. Each phase should be fully working and tested before moving
 - **No `console.log`.** Use the logger.
 - **No `any`.** Ever.
 - **No untested critical paths.** Auth, permissions, and real-time sync must have tests.
+
+---
+
+## Decision Log
+
+Track decisions Thomas makes during implementation for future ADRs. When Thomas evaluates tradeoffs and chooses an approach, record it here with the alternatives considered and reasoning. These will be written up as formal ADRs in Phase 8.
+
+### Phase 1–4
+
+- **httpOnly cookies over localStorage for refresh tokens** — Evaluated localStorage (simple, XSS-vulnerable), httpOnly cookies (secure, needs CSRF protection), and in-memory only (bad UX on refresh). Chose httpOnly cookies to do it right from the start rather than retrofitting in Phase 8.
+- **Tailwind over CSS Modules** — Evaluated plain CSS (global namespace issues), CSS Modules (scoped, zero config), and Tailwind (utility-first, industry standard). Chose Tailwind for speed and prevalence in modern projects.
+- **Auto-save with debounce over manual save** — Preferred better UX even knowing it adds complexity. Debounce delay of 1-2s.
+- **404 for no access, 403 for insufficient access** — Don't reveal document existence to unauthorized users. Security-by-design.
+- **Include user data in share responses** — Keep the JOIN for convenience. Don't optimize until timing is actually bad.
+- **Import shared schemas vs duplicate** — Reuse DocumentParamsSchema from documents.schemas.ts in shares routes rather than duplicating.
+- **Fastify over Next.js for backend** — Next.js API routes don't natively support WebSockets (needed for real-time collaboration), have limited middleware compared to Fastify's plugin system, and abstract away backend architecture that Thomas wants to learn. Tradeoff: two dev servers instead of one, but cleaner separation of concerns.
+
+### Phase 5+
+
+(Continue tracking new decisions here as they come up)
