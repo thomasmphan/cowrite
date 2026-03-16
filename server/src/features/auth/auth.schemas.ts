@@ -17,17 +17,10 @@ export const LoginBodySchema = Type.Object({
 
 export type LoginBody = Static<typeof LoginBodySchema>;
 
-export const RefreshBodySchema = Type.Object({
-  refreshToken: Type.String(),
-});
-
-export type RefreshBody = Static<typeof RefreshBodySchema>;
-
 // --- Response schemas ---
 
 export const AuthResponseSchema = Type.Object({
   accessToken: Type.String(),
-  refreshToken: Type.String(),
   user: Type.Object({
     id: Type.String(),
     email: Type.String(),

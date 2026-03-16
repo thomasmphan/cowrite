@@ -1,4 +1,5 @@
 import Fastify, { FastifyInstance } from 'fastify';
+import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
 import { errorHandler } from './shared/middleware/error-handler.js';
 import prismaPlugin from './shared/plugins/prisma.js';
@@ -18,6 +19,7 @@ export function buildApp(): FastifyInstance {
 
   app.register(prismaPlugin);
   app.register(fastifyJwt, { secret: env.jwt.secret });
+  app.register(fastifyCookie);
 
   app.get('/health', async (request) => {
     await request.server.prisma.$queryRaw`SELECT 1`;

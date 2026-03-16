@@ -25,8 +25,16 @@ const testUser = {
   displayName: 'Test User',
 };
 
+function getRefreshTokenCookie(response: { cookies: { name: string; value: string }[] }): string {
+  const cookie = response.cookies.find((c) => c.name === 'refreshToken');
+  if (!cookie) {
+    throw new Error('refreshToken cookie not found in response');
+  }
+  return cookie.value;
+}
+
 describe('POST /api/auth/register', () => {
-  it('creates a new user and returns tokens', async () => {
+  it('creates a new user and returns access token with refresh cookie', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/auth/register',
@@ -39,7 +47,9 @@ describe('POST /api/auth/register', () => {
     expect(body.user.displayName).toBe(testUser.displayName);
     expect(body.user.id).toBeDefined();
     expect(body.accessToken).toBeDefined();
-    expect(body.refreshToken).toBeDefined();
+    // Refresh token must NOT be in the body - it's in the cookie
+    expect(body).not.toHaveProperty('refreshToken');
+    expect(getRefreshTokenCookie(response)).toBeDefined();
     // Must not leak password hash
     expect(body.user).not.toHaveProperty('passwordHash');
   });
@@ -90,7 +100,7 @@ describe('POST /api/auth/login', () => {
     });
   });
 
-  it('returns tokens for valid credentials', async () => {
+  it('returns access token with refresh cookie for valid credentials', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/auth/login',
@@ -101,7 +111,8 @@ describe('POST /api/auth/login', () => {
     const body = response.json();
     expect(body.user.email).toBe(testUser.email);
     expect(body.accessToken).toBeDefined();
-    expect(body.refreshToken).toBeDefined();
+    expect(body).not.toHaveProperty('refreshToken');
+    expect(getRefreshTokenCookie(response)).toBeDefined();
   });
 
   it('return 401 for wrong password', async () => {
@@ -126,33 +137,44 @@ describe('POST /api/auth/login', () => {
 });
 
 describe('POST /api/auth/refresh', () => {
-  it('returns new tokens for valid refresh token', async () => {
+  it('returns new tokens for valid refresh cookie', async () => {
     const registerResponse = await app.inject({
       method: 'POST',
       url: '/api/auth/register',
       payload: testUser,
     });
-    const { refreshToken } = registerResponse.json();
+    const refreshToken = getRefreshTokenCookie(registerResponse);
 
     const response = await app.inject({
       method: 'POST',
       url: '/api/auth/refresh',
-      payload: { refreshToken },
+      cookies: { refreshToken },
     });
 
     expect(response.statusCode).toBe(200);
     const body = response.json();
     expect(body.accessToken).toBeDefined();
-    expect(body.refreshToken).toBeDefined();
-    // New refresh token should be different (rotation)
-    expect(body.refreshToken).not.toBe(refreshToken);
+    expect(body).not.toHaveProperty('refreshToken');
+    // New cookie should be different (rotation)
+    const newRefreshToken = getRefreshTokenCookie(response);
+    expect(newRefreshToken).toBeDefined();
+    expect(newRefreshToken).not.toBe(refreshToken);
   });
 
-  it('returns 401 for invalid refresh token', async () => {
+  it('returns 401 for invalid refresh cookie', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/auth/refresh',
-      payload: { refreshToken: 'invalid-token' },
+      cookies: { refreshToken: 'invalid-token' },
+    });
+
+    expect(response.statusCode).toBe(401);
+  });
+
+  it('returns 401 when no refresh cookie is present', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/auth/refresh',
     });
 
     expect(response.statusCode).toBe(401);
@@ -164,20 +186,20 @@ describe('POST /api/auth/refresh', () => {
       url: '/api/auth/register',
       payload: testUser,
     });
-    const { refreshToken } = registerResponse.json();
+    const refreshToken = getRefreshTokenCookie(registerResponse);
 
     // Use the refresh token once
     await app.inject({
       method: 'POST',
       url: '/api/auth/refresh',
-      payload: { refreshToken },
+      cookies: { refreshToken },
     });
 
     // Try to use the refresh token again - should fail
     const response = await app.inject({
       method: 'POST',
       url: '/api/auth/refresh',
-      payload: { refreshToken },
+      cookies: { refreshToken },
     });
 
     expect(response.statusCode).toBe(401);
@@ -185,18 +207,18 @@ describe('POST /api/auth/refresh', () => {
 });
 
 describe('POST /api/auth/logout', () => {
-  it('revokes the refresh token', async () => {
+  it('revokes the refresh token and clears cookie', async () => {
     const registerResponse = await app.inject({
       method: 'POST',
       url: '/api/auth/register',
       payload: testUser,
     });
-    const { refreshToken } = registerResponse.json();
+    const refreshToken = getRefreshTokenCookie(registerResponse);
 
     const logoutResponse = await app.inject({
       method: 'POST',
       url: '/api/auth/logout',
-      payload: { refreshToken },
+      cookies: { refreshToken },
     });
 
     expect(logoutResponse.statusCode).toBe(200);
@@ -205,7 +227,7 @@ describe('POST /api/auth/logout', () => {
     const refreshResponse = await app.inject({
       method: 'POST',
       url: '/api/auth/refresh',
-      payload: { refreshToken },
+      cookies: { refreshToken },
     });
 
     expect(refreshResponse.statusCode).toBe(401);
