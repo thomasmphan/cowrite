@@ -85,7 +85,12 @@ export class AuthService {
     }
 
     // Delete the old token (rotation - each refresh token is single-use)
-    await this.prisma.refreshToken.delete({ where: { id: stored.id } });
+    try {
+      await this.prisma.refreshToken.delete({ where: { id: stored.id } });
+    } catch {
+      // Token already consumed by a concurrent request
+      throw new UnauthorizedError('Invalid or expired refresh token');
+    }
 
     const tokens = await this.generateTokens(stored.userId);
 
