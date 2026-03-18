@@ -23,12 +23,15 @@ async function apiRequest(url: string, options: RequestInit = {}): Promise<Respo
   if (accessToken) {
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
-  headers.set('Content-Type', 'application/json');
+
+  if (options.body) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   const response = await fetch(url, { ...options, headers });
 
   // If 401, try refreshing the token and retry once
-  if (response.status == 401 && accessToken) {
+  if (response.status == 401) {
     const refreshed = await refreshAccessToken();
     if (refreshed) {
       headers.set('Authorization', `Bearer ${accessToken}`);

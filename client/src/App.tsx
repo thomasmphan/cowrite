@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
+import DocumentListPage from './pages/DocumentListPage';
 
 function AppContent(): ReactNode {
   const { user, isLoading } = useAuth();
@@ -17,14 +18,7 @@ function AppContent(): ReactNode {
     return <LoginPage />;
   }
 
-  return (
-    <div className='flex min-h-screen items-center justify-center bg-gray-100'>
-      <div className='text-center'>
-        <h1 className='text-2xl font-bold text-gray-900'>Welcome, {user.displayName}</h1>
-        <p className='mt-2 text-gray-600'>{user.email}</p>
-      </div>
-    </div>
-  );
+  return <DocumentListPage />;
 }
 
 export default function App(): ReactNode {

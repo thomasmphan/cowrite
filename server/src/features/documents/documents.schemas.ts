@@ -3,14 +3,14 @@ import { Type, Static } from '@sinclair/typebox';
 // --- Request schemas ---
 
 export const CreateDocumentBodySchema = Type.Object({
-  title: Type.Optional(Type.String({ minLength: 1 })),
+  title: Type.Optional(Type.String({ minLength: 1, maxLength: 100 })),
   content: Type.Optional(Type.Unknown()),
 });
 
 export type CreateDocumentBody = Static<typeof CreateDocumentBodySchema>;
 
 export const UpdateDocumentBodySchema = Type.Object({
-  title: Type.Optional(Type.String({ minLength: 1 })),
+  title: Type.Optional(Type.String({ minLength: 1, maxLength: 100 })),
   content: Type.Optional(Type.Unknown()),
 });
 
