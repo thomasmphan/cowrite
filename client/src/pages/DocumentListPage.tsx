@@ -1,4 +1,5 @@
 import { useState, useEffect, ReactNode, SyntheticEvent } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import * as documentsApi from '../api/documents';
 
@@ -94,7 +95,9 @@ export default function DocumentListPage(): ReactNode {
                 className='flex items-center justify-between rounded bg-white px-4 py-3 shadow'
               >
                 <div className='min-w-0 flex-1'>
-                  <p className='truncate font-medium text-gray-900'>{doc.title}</p>
+                  <Link to={`/documents/${doc.id}`} className='truncate font-medium text-gray-900 hover:text-blue-600' >
+                    {doc.title}
+                  </Link>
                   <p className='text-xs text-gray-500'>
                     {new Date(doc.updatedAt).toLocaleDateString()}
                   </p>

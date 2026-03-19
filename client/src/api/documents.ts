@@ -37,7 +37,7 @@ export async function updateDocument(
   id: string,
   data: { title?: string; content?: unknown },
 ): Promise<Document> {
-  const response = await apiClient.patch(`/api/documents/${id}`, { data });
+  const response = await apiClient.patch(`/api/documents/${id}`, data);
   if (!response.ok) {
     throw new Error('Failed to update document');
   }

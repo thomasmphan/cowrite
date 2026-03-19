@@ -1,7 +1,9 @@
 import { ReactNode } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
 import DocumentListPage from './pages/DocumentListPage';
+import EditorPage from './pages/EditorPage';
 
 function AppContent(): ReactNode {
   const { user, isLoading } = useAuth();
@@ -18,13 +20,21 @@ function AppContent(): ReactNode {
     return <LoginPage />;
   }
 
-  return <DocumentListPage />;
+  return (
+    <Routes>
+      <Route path='/' element={<DocumentListPage />} />
+      <Route path='/documents/:id' element={<EditorPage />} />
+      <Route path='/*' element={<Navigate to='/' replace />} />
+    </Routes>
+  );
 }
 
 export default function App(): ReactNode {
   return (
     <AuthProvider>
-      <AppContent />
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
     </AuthProvider>
   );
 }
