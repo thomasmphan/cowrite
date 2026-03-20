@@ -484,4 +484,6 @@ Track decisions Thomas makes during implementation for future ADRs. When Thomas 
 
 ### Phase 5+
 
+- **Hocuspocus + Yjs over Socket.io + last-write-wins** — Evaluated LWW (simple but loses data on concurrent edits), custom Yjs sync over Socket.io (educational but reinvents the wheel), and Hocuspocus (purpose-built for TipTap+Yjs, built-in auth/persistence/presence hooks). Chose Hocuspocus because CRDTs are a solved problem — senior engineering judgment is knowing when to integrate vs build. Socket.io was a means to an end, not the goal.
+
 (Continue tracking new decisions here as they come up)

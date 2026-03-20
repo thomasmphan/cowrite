@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
-import { useEditor, EditorContent, JSONContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import { ReactNode } from 'react';
+import { useEditor, EditorContent, JSONContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import Toolbar from './Toolbar';
 
 interface EditorProps {

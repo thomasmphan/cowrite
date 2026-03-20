@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import { Editor, useEditorState } from "@tiptap/react";
+import { ReactNode } from 'react';
+import { Editor, useEditorState } from '@tiptap/react';
 
 interface ToolbarProps {
   editor: Editor;

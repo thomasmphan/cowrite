@@ -1,6 +1,6 @@
-import { useState, useEffect, ReactNode, SyntheticEvent } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useState, useEffect, ReactNode, SyntheticEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import * as documentsApi from '../api/documents';
 
 interface Document {

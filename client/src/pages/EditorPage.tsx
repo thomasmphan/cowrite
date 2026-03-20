@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, ReactNode } from "react";
-import { useParams, Link } from "react-router-dom";
-import { JSONContent } from "@tiptap/react";
-import Editor from "../components/editor/Editor";
+import { useState, useEffect, useRef, ReactNode } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { JSONContent } from '@tiptap/react';
+import Editor from '../components/editor/Editor';
 import * as documentsApi from '../api/documents';
 
 const DEBOUNCE_MS = 1500;
@@ -18,8 +18,8 @@ export default function EditorPage(): ReactNode {
   useEffect(() => {
     if (!id) return;
 
-    documentsApi.
-      getDocument(id)
+    documentsApi
+      .getDocument(id)
       .then((doc) => {
         setTitle(doc.title);
         setContent(doc.content as JSONContent);
