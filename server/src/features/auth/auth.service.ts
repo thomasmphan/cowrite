@@ -5,6 +5,7 @@ import { ConflictError, UnauthorizedError } from '../../shared/utils/errors.js';
 import { env } from '../../config/env.js';
 
 const SALT_ROUNDS = 12;
+const DEFAULT_REFRESH_TOKEN_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000; // default 7 days in ms
 
 interface TokenPair {
   accessToken: string;
@@ -79,7 +80,11 @@ export class AuthService {
 
     if (!stored || stored.expiresAt < new Date()) {
       if (stored) {
-        await this.prisma.refreshToken.delete({ where: { id: stored.id } });
+        try {
+          await this.prisma.refreshToken.delete({ where: { id: stored.id } });
+        } catch {
+          // Already deleted by concurrent request
+        }
       }
       throw new UnauthorizedError('Invalid or expired refresh token');
     }
@@ -113,8 +118,7 @@ export class AuthService {
 
     const refreshToken = randomBytes(40).toString('hex');
 
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + parseDays(env.jwt.refreshExpiresIn));
+    const expiresAt = new Date(Date.now() + parseDuration(env.jwt.refreshExpiresIn));
 
     await this.prisma.refreshToken.create({
       data: { token: refreshToken, userId, expiresAt },
@@ -124,7 +128,25 @@ export class AuthService {
   }
 }
 
-function parseDays(duration: string): number {
-  const match = duration.match(/^(\d+)d$/);
-  return match ? Number(match[1]) : 7;
+// Parses duration strings like "15m", "7d", "30s" into milliseconds.
+// Used for refresh token expiry. Falls back to 7 days if format is unrecognized.
+function parseDuration(duration: string): number {
+  const match = duration.match(/^(\d+)(s|m|h|d)$/);
+  if (!match) return DEFAULT_REFRESH_TOKEN_EXPIRATION_MS;
+
+  const value = Number(match[1]);
+  const unit = match[2];
+
+  switch (unit) {
+    case 's':
+      return value * 1000;
+    case 'm':
+      return value * 60 * 1000;
+    case 'h':
+      return value * 60 * 60 * 1000;
+    case 'd':
+      return value * 24 * 60 * 60 * 1000;
+    default:
+      return DEFAULT_REFRESH_TOKEN_EXPIRATION_MS;
+  }
 }

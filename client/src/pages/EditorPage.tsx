@@ -1,63 +1,22 @@
-import { useState, useEffect, useRef, ReactNode } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { JSONContent } from '@tiptap/react';
 import Editor from '../components/editor/Editor';
+import { getAccessToken } from '../api/client';
 import * as documentsApi from '../api/documents';
-
-const DEBOUNCE_MS = 1500;
 
 export default function EditorPage(): ReactNode {
   const { id } = useParams<{ id: string }>();
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState<JSONContent | null>(null);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingContentRef = useRef<JSONContent | null>(null);
+  const token = getAccessToken();
 
   useEffect(() => {
     if (!id) return;
 
     documentsApi
       .getDocument(id)
-      .then((doc) => {
-        setTitle(doc.title);
-        setContent(doc.content as JSONContent);
-      })
+      .then((doc) => setTitle(doc.title))
       .catch(() => setError('Failed to load document'));
-  }, [id]);
-
-  function handleUpdate(newContent: JSONContent): void {
-    if (!id) return;
-
-    pendingContentRef.current = newContent;
-
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-
-    timerRef.current = setTimeout(async () => {
-      pendingContentRef.current = null;
-      setSaving(true);
-      try {
-        await documentsApi.updateDocument(id, { content: newContent });
-      } catch {
-        setError('Failed to save');
-      } finally {
-        setSaving(false);
-      }
-    }, DEBOUNCE_MS);
-  }
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-      if (pendingContentRef.current && id) {
-        documentsApi.updateDocument(id, { content: pendingContentRef.current });
-      }
-    };
   }, [id]);
 
   if (error) {
@@ -73,7 +32,7 @@ export default function EditorPage(): ReactNode {
     );
   }
 
-  if (content === null) {
+  if (!id || !token) {
     return (
       <div className='flex min-h-screen items-center justify-center bg-gray-100'>
         <p className='text-gray-500'>Loading...</p>
@@ -90,13 +49,10 @@ export default function EditorPage(): ReactNode {
           </Link>
           <h1 className='text-xl font-bold text-gray-900'>{title}</h1>
         </div>
-        <span className='text-sm text-gray-400'>
-          {saving ? 'Saving...' : 'Saved'}
-        </span>
       </header>
 
       <main className='mx-auto max-w-3x1 p-6'>
-        <Editor content={content} onUpdate={handleUpdate} />
+        <Editor documentId={id} token={token} />
       </main>
     </div>
   );

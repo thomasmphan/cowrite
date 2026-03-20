@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { setOnAuthFailure } from '../api/client';
 import * as authApi from '../api/auth';
 
 interface User {
@@ -24,12 +25,19 @@ export function AuthProvider({ children }: { children: ReactNode }): ReactNode {
 
   // On mount, try to restore session from refresh cookie
   useEffect(() => {
+    // Register a callback so the API client can clear user state when a token
+    // refresh fails (e.g. session expired overnight). The API client is a plain
+    // module without access to React state — this callback bridges the gap.
+    setOnAuthFailure(() => setUser(null));
+
     authApi.refresh().then((data) => {
       if (data) {
         setUser(data.user);
       }
       setIsLoading(false);
     });
+
+    return () => setOnAuthFailure(null);
   }, []);
 
   const login = useCallback(async (email: string, password: string): Promise<void> => {

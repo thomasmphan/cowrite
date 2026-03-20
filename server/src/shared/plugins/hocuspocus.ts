@@ -14,6 +14,9 @@ import { env } from '../../config/env.js';
 export default fp(async (app: FastifyInstance) => {
   const hocuspocus = new Hocuspocus({
     quiet: true,
+
+    // debounce: wait 2s after the last edit before persisting to DB
+    // maxDebounce: force a save after 10s even if edits keep coming
     debounce: 2000,
     maxDebounce: 10000,
 
@@ -69,6 +72,9 @@ export default fp(async (app: FastifyInstance) => {
 
     async onStoreDocument(data: onStoreDocumentPayload): Promise<void> {
       const documentId = data.documentName;
+
+      // Encode full Yjs document state as a compact binary (includes CRDT metadata
+      // needed for conflict-free merging, not just the document content)
       const state = Y.encodeStateAsUpdate(data.document);
 
       await app.prisma.document.update({
