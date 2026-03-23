@@ -1,10 +1,12 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Editor from '../components/editor/Editor';
+import { useAuth } from '../contexts/AuthContext';
 import { getAccessToken } from '../api/client';
 import * as documentsApi from '../api/documents';
 
 export default function EditorPage(): ReactNode {
+  const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const [title, setTitle] = useState('');
   const [error, setError] = useState('');
@@ -52,7 +54,7 @@ export default function EditorPage(): ReactNode {
       </header>
 
       <main className='mx-auto max-w-3x1 p-6'>
-        <Editor documentId={id} token={token} />
+        <Editor documentId={id} token={token} userName={user?.displayName ?? 'Anonymous'} />
       </main>
     </div>
   );

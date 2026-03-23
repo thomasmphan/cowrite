@@ -1,17 +1,15 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Collaboration from '@tiptap/extension-collaboration';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
-import Toolbar from './Toolbar';
+import CollaborativeEditor from './CollaborativeEditor';
 
 interface EditorProps {
   documentId: string;
   token: string;
+  userName: string;
 }
 
-export default function Editor({ documentId, token }: EditorProps): ReactNode {
+export default function Editor({ documentId, token, userName }: EditorProps): ReactNode {
   const [provider, setProvider] = useState<HocuspocusProvider | null>(null);
 
   // Provider must be created in useEffect (not useState) because React Strict Mode
@@ -34,21 +32,7 @@ export default function Editor({ documentId, token }: EditorProps): ReactNode {
     };
   }, [documentId, token]);
   
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        // Collaboration extension handles history (undo/redo),
-        // so disable StarterKit's built-in history to avoid conflicts
-        undoRedo: false,
-      }),
-      ...(provider ? [Collaboration.configure({
-        document: provider.document,
-      })] : []),
-    ],
-    editable: !!provider,
-  }, [provider]);
-
-  if (!provider || !editor) {
+  if (!provider) {
     return (
       <div className='flex items-center justify-center p-8'>
         <p className='text-gray-500'>Connecting...</p>
@@ -56,12 +40,5 @@ export default function Editor({ documentId, token }: EditorProps): ReactNode {
     );
   }
 
-  return (
-    <div className='rounded border bg-white shadow'>
-      <Toolbar editor={editor} />
-      <div className='p-4'>
-        <EditorContent editor={editor} />
-      </div>
-    </div>
-  );
+  return <CollaborativeEditor provider={provider} userName={userName} />;
 }
