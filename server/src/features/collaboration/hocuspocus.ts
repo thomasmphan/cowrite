@@ -4,11 +4,11 @@ import {
   onLoadDocumentPayload,
   onStoreDocumentPayload,
 } from '@hocuspocus/server';
-import { WebSocketServer } from 'ws';
 import * as Y from 'yjs';
+import jwt from 'jsonwebtoken';
 import fp from 'fastify-plugin';
 import { FastifyInstance } from 'fastify';
-import jwt from 'jsonwebtoken';
+import { WebSocketServer } from 'ws';
 import { env } from '../../config/env.js';
 
 export default fp(async (app: FastifyInstance) => {

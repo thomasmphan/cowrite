@@ -4,7 +4,7 @@ import { HocuspocusProvider } from '@hocuspocus/provider';
 import StarterKit from '@tiptap/starter-kit';
 import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from './collaboration-cursor';
-import ActiveUsers from './ActiveUser';
+import ActiveUsers from './ActiveUsers';
 import Toolbar from './Toolbar';
 import { ConnectionStatus } from './Editor';
 

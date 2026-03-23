@@ -2,8 +2,8 @@ import Fastify, { FastifyInstance } from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
 import { errorHandler } from './shared/middleware/error-handler.js';
-import hocuspocusPlugin from './shared/plugins/hocuspocus.js';
 import prismaPlugin from './shared/plugins/prisma.js';
+import hocuspocusPlugin from './features/collaboration/hocuspocus.js';
 import { authRoutes } from './features/auth/auth.routes.js';
 import { documentRoutes } from './features/documents/documents.routes.js';
 import { shareRoutes } from './features/shares/shares.routes.js';
@@ -18,12 +18,12 @@ export function buildApp(): FastifyInstance {
 
   app.setErrorHandler(errorHandler);
 
-  // Plugin registration order matters: Fastify registers plugins sequentially,
-  // so later plugins can depend on decorators from earlier ones.
-  // hocuspocusPlugin uses app.prisma (from prismaPlugin) in its hooks.
+  // Infrastructure plugins (no dependencies)
   app.register(prismaPlugin);
   app.register(fastifyJwt, { secret: env.jwt.secret });
   app.register(fastifyCookie);
+
+  // Feature plugins (hocuspocus depends on prismaPlugin for DB access)
   app.register(hocuspocusPlugin);
 
   app.get('/health', async (request) => {
