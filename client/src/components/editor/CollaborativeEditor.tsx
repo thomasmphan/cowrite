@@ -6,6 +6,7 @@ import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from './collaboration-cursor';
 import ActiveUsers from './ActiveUser';
 import Toolbar from './Toolbar';
+import { ConnectionStatus } from './Editor';
 
 const CURSOR_COLORS = [
   '#f87171', // red
@@ -29,13 +30,15 @@ function getUserColor(name: string): string {
 interface CollaborativeEditorProps {
   provider: HocuspocusProvider;
   userName: string;
+  connectionStatus: ConnectionStatus;
+  hasConnected: boolean;
 }
 
 // Separated from Editor.tsx so that useEditor always receives all collaboration
 // extensions from the first render. If they were in the same component, useEditor
 // would reconfigure mid-lifecycle when provider changes from null to a value,
 // causing ProseMirror plugin state mismatches.
-export default function CollaborativeEditor({ provider, userName }: CollaborativeEditorProps): ReactNode {
+export default function CollaborativeEditor({ provider, userName, connectionStatus, hasConnected }: CollaborativeEditorProps): ReactNode {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -70,6 +73,17 @@ export default function CollaborativeEditor({ provider, userName }: Collaborativ
           <Toolbar editor={editor} />
           <ActiveUsers provider={provider} />
         </div>
+        {hasConnected && connectionStatus !== 'connected' && (
+          <div className={`px-4 py-2 text-sm font-medium ${
+            connectionStatus === 'connecting'
+              ? 'bg-yellow-50 text-yellow-800'
+              : 'bg-red-50 text-red-800'
+          }`}>
+            {connectionStatus === 'connecting'
+              ? 'Reconnecting...'
+              : 'Disconnected - changes will sync when connection is restored'}
+          </div>
+        )}
         <div className='p-4'>
           <EditorContent editor={editor} />
         </div>
