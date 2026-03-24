@@ -4,6 +4,24 @@ import { buildApp } from '../../app.js';
 
 let app: FastifyInstance;
 
+// --- Helpers ---
+
+const testUser = {
+  email: 'test@example.com',
+  password: 'password123',
+  displayName: 'Test User',
+};
+
+function getRefreshTokenCookie(response: { cookies: { name: string; value: string }[] }): string {
+  const cookie = response.cookies.find((c) => c.name === 'refreshToken');
+  if (!cookie) {
+    throw new Error('refreshToken cookie not found in response');
+  }
+  return cookie.value;
+}
+
+// --- Setup ---
+
 beforeAll(async () => {
   app = buildApp();
   await app.ready();
@@ -19,19 +37,7 @@ beforeEach(async () => {
   await app.prisma.user.deleteMany();
 });
 
-const testUser = {
-  email: 'test@example.com',
-  password: 'password123',
-  displayName: 'Test User',
-};
-
-function getRefreshTokenCookie(response: { cookies: { name: string; value: string }[] }): string {
-  const cookie = response.cookies.find((c) => c.name === 'refreshToken');
-  if (!cookie) {
-    throw new Error('refreshToken cookie not found in response');
-  }
-  return cookie.value;
-}
+// --- Tests ---
 
 describe('POST /api/auth/register', () => {
   it('creates a new user and returns access token with refresh cookie', async () => {

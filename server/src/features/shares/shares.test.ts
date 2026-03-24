@@ -4,6 +4,8 @@ import { buildApp } from '../../app.js';
 
 let app: FastifyInstance;
 
+// --- Helpers ---
+
 async function registerAndGetToken(
   email: string,
   password = 'password123',
@@ -31,6 +33,8 @@ async function createDocument(token: string, title = 'Test Doc'): Promise<string
   return response.json().id;
 }
 
+// --- Setup ---
+
 beforeAll(async () => {
   app = buildApp();
   await app.ready();
@@ -46,6 +50,8 @@ beforeEach(async () => {
   await app.prisma.document.deleteMany();
   await app.prisma.user.deleteMany();
 });
+
+// --- Tests ---
 
 describe('POST /api/documents/:id/shares', () => {
   it('shares a document with another user', async () => {

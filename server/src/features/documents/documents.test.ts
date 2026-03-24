@@ -4,6 +4,8 @@ import { buildApp } from '../../app.js';
 
 let app: FastifyInstance;
 
+// --- Helpers ---
+
 async function registerAndGetToken(
   email: string,
   password = 'password123',
@@ -21,6 +23,8 @@ function authHeader(token: string): Record<string, string> {
   return { authorization: `Bearer ${token}` };
 }
 
+// --- Setup ---
+
 beforeAll(async () => {
   app = buildApp();
   await app.ready();
@@ -36,6 +40,8 @@ beforeEach(async () => {
   await app.prisma.document.deleteMany();
   await app.prisma.user.deleteMany();
 });
+
+// --- Tests ---
 
 describe('POST /api/documents', () => {
   it('creates a document with defaults', async () => {

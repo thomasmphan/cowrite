@@ -10,6 +10,8 @@ import {
 
 let app: FastifyInstance;
 
+// --- Setup ---
+
 beforeAll(async () => {
   app = Fastify();
   app.setErrorHandler(errorHandler);
@@ -57,6 +59,8 @@ beforeAll(async () => {
 afterAll(async () => {
   await app.close();
 });
+
+// --- Tests ---
 
 describe('error handler', () => {
   it('returns 404 with NOT_FOUND for NotFoundError', async () => {
