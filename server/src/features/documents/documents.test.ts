@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildApp } from '../../app.js';
+import * as schema from '../../db/schema.js';
 
 let app: FastifyInstance;
 
@@ -35,10 +36,10 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  await app.prisma.documentShare.deleteMany();
-  await app.prisma.refreshToken.deleteMany();
-  await app.prisma.document.deleteMany();
-  await app.prisma.user.deleteMany();
+  await app.db.delete(schema.documentShares);
+  await app.db.delete(schema.refreshTokens);
+  await app.db.delete(schema.documents);
+  await app.db.delete(schema.users);
 });
 
 // --- Tests ---

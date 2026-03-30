@@ -9,7 +9,9 @@ import jwt from 'jsonwebtoken';
 import fp from 'fastify-plugin';
 import { FastifyInstance } from 'fastify';
 import { WebSocketServer } from 'ws';
+import { eq, and } from 'drizzle-orm';
 import { env } from '../../config/env.js';
+import * as schema from '../../db/schema.js';
 
 export default fp(async (app: FastifyInstance) => {
   const hocuspocus = new Hocuspocus({
@@ -33,8 +35,8 @@ export default fp(async (app: FastifyInstance) => {
       const documentId = data.documentName;
 
       // Check the user has access to this document (owner or shared)
-      const document = await app.prisma.document.findUnique({
-        where: { id: documentId },
+      const document = await app.db.query.documents.findFirst({
+        where: eq(schema.documents.id, documentId),
       });
 
       if (!document) {
@@ -42,8 +44,11 @@ export default fp(async (app: FastifyInstance) => {
       }
 
       if (document.ownerId !== userId) {
-        const share = await app.prisma.documentShare.findUnique({
-          where: { documentId_userId: { documentId, userId } },
+        const share = await app.db.query.documentShares.findFirst({
+          where: and(
+            eq(schema.documentShares.documentId, documentId),
+            eq(schema.documentShares.userId, userId),
+          ),
         });
 
         if (!share) {
@@ -61,8 +66,8 @@ export default fp(async (app: FastifyInstance) => {
 
     async onLoadDocument(data: onLoadDocumentPayload): Promise<void> {
       const documentId = data.documentName;
-      const document = await app.prisma.document.findUnique({
-        where: { id: documentId },
+      const document = await app.db.query.documents.findFirst({
+        where: eq(schema.documents.id, documentId),
       });
 
       if (document?.ydoc) {
@@ -77,10 +82,10 @@ export default fp(async (app: FastifyInstance) => {
       // needed for conflict-free merging, not just the document content)
       const state = Y.encodeStateAsUpdate(data.document);
 
-      await app.prisma.document.update({
-        where: { id: documentId },
-        data: { ydoc: Buffer.from(state) },
-      });
+      await app.db
+        .update(schema.documents)
+        .set({ ydoc: Buffer.from(state) })
+        .where(eq(schema.documents.id, documentId));
     },
   });
 

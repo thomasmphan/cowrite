@@ -15,7 +15,7 @@ import {
 export async function documentRoutes(app: FastifyInstance): Promise<void> {
   app.addHook('onRequest', authenticate);
 
-  const documentsService = new DocumentsService(app.prisma);
+  const documentsService = new DocumentsService(app.db);
 
   // POST /api/documents
   app.post<{ Body: CreateDocumentBody }>(

@@ -1,28 +1,28 @@
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 import fp from 'fastify-plugin';
 import { FastifyInstance } from 'fastify';
 import { env } from '../../config/env.js';
+import * as schema from '../../db/schema.js';
 
 export default fp(async (app: FastifyInstance) => {
   const pool = new pg.Pool({ connectionString: env.database.url });
-  const adapter = new PrismaPg(pool);
-  const prisma = new PrismaClient({ adapter });
+  const db = drizzle(pool, { schema });
 
-  await prisma.$connect();
+  // Verify connectivity
+  await pool.query('SELECT 1');
   app.log.info('Connected to database');
 
-  app.decorate('prisma', prisma);
+  app.decorate('db', db);
 
   app.addHook('onClose', async () => {
-    await prisma.$disconnect();
+    await pool.end();
     app.log.info('Disconnected from database');
   });
 });
 
 declare module 'fastify' {
   interface FastifyInstance {
-    prisma: PrismaClient;
+    db: NodePgDatabase<typeof schema>;
   }
 }

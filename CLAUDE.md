@@ -45,21 +45,21 @@ If implementation fails or gets complex:
 
 ## Tech Stack
 
-| Layer            | Technology                                 | Notes                                                                                                                                                                                                   |
-| ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frontend         | React + TypeScript (Vite)                  | Thomas has some React experience, needs refreshing                                                                                                                                                      |
-| Rich Text Editor | TipTap (ProseMirror-based)                 | Handles editor complexity, we focus on collaboration layer                                                                                                                                              |
-| Backend          | Node + Fastify + TypeScript                | Modern, typed, built-in validation                                                                                                                                                                      |
-| Real-time        | Socket.io                                  | Industry standard, works well with Fastify                                                                                                                                                              |
-| Database         | PostgreSQL                                 | Via Docker locally, Neon free tier for prod                                                                                                                                                             |
-| ORM              | Prisma 7                                   | Uses driver adapters (`@prisma/adapter-pg` + `pg`). DB config lives in `server/prisma.config.ts`, not `schema.prisma`. Raw SQL for Postgres-specific features (full-text search, JSONB, LISTEN/NOTIFY). |
-| Auth             | JWT (with OAuth Google/GitHub added later) | Custom implementation to learn auth properly                                                                                                                                                            |
-| AI               | RAG pipeline — chat with your documents    | OpenAI API for embeddings + completion                                                                                                                                                                  |
-| Testing          | Vitest                                     | Jest-compatible API, native Vite/TS support                                                                                                                                                             |
-| Linting          | ESLint + Prettier                          | Enforced from day one                                                                                                                                                                                   |
-| Containerization | Docker + Docker Compose                    | From day one — single `docker compose up` to run everything                                                                                                                                             |
-| CI/CD            | GitHub Actions                             | Lint, type-check, test on every PR                                                                                                                                                                      |
-| Monorepo         | npm workspaces                             | Shared types between frontend and backend                                                                                                                                                               |
+| Layer            | Technology                                 | Notes                                                                                                                                                                                                                        |
+| ---------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend         | React + TypeScript (Vite)                  | Thomas has some React experience, needs refreshing                                                                                                                                                                           |
+| Rich Text Editor | TipTap (ProseMirror-based)                 | Handles editor complexity, we focus on collaboration layer                                                                                                                                                                   |
+| Backend          | Node + Fastify + TypeScript                | Modern, typed, built-in validation                                                                                                                                                                                           |
+| Real-time        | Hocuspocus + Yjs                           | CRDT-based real-time sync, purpose-built for TipTap collaboration                                                                                                                                                            |
+| Database         | PostgreSQL                                 | Via Docker locally, Neon free tier for prod                                                                                                                                                                                  |
+| ORM              | Drizzle ORM                                | Migrated from Prisma 7 in Phase 6.5 for first-class pgvector support. Uses `drizzle-orm/node-postgres` with `pg` driver. Schema defined in TypeScript. Native vector columns, HNSW indexes, and cosine similarity operators. |
+| Auth             | JWT (with OAuth Google/GitHub added later) | Custom implementation to learn auth properly                                                                                                                                                                                 |
+| AI               | RAG pipeline — chat with your documents    | Voyage AI for embeddings, Claude Haiku for generation. No OpenAI.                                                                                                                                                            |
+| Testing          | Vitest                                     | Jest-compatible API, native Vite/TS support                                                                                                                                                                                  |
+| Linting          | ESLint + Prettier                          | Enforced from day one                                                                                                                                                                                                        |
+| Containerization | Docker + Docker Compose                    | From day one — single `docker compose up` to run everything                                                                                                                                                                  |
+| CI/CD            | GitHub Actions                             | Lint, type-check, test on every PR                                                                                                                                                                                           |
+| Monorepo         | npm workspaces                             | Shared types between frontend and backend                                                                                                                                                                                    |
 
 ---
 
@@ -243,7 +243,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`, `perf`
 **Don't test (yet):**
 
 - React components — UI changes too fast early on
-- Simple CRUD with no logic — Prisma handles the query, nothing to test
+- Simple CRUD with no logic — Drizzle handles the query, nothing to test
 - Third-party library behavior
 
 ### Test Structure
@@ -368,7 +368,7 @@ Decisions already made that need ADRs:
 - Monorepo with npm workspaces (shared types, single repo)
 - Fastify over Express (TypeScript support, built-in validation, performance)
 - JWT auth over session-based (stateless, fits separated frontend/backend)
-- Prisma + raw SQL hybrid (ORM for CRUD, raw for Postgres-specific features)
+- Drizzle ORM over Prisma (native pgvector support for RAG pipeline)
 - TipTap for rich text (ProseMirror-based, extensible, collaboration support)
 - Feature-based project structure over layer-based
 - Vitest over Jest (Vite-native, TypeScript out of the box)
@@ -385,7 +385,7 @@ Build incrementally. Each phase should be fully working and tested before moving
 - [ ] Monorepo setup (npm workspaces, shared types package)
 - [ ] Docker Compose (Fastify + Postgres)
 - [ ] Fastify app scaffold with health check, logging, error handling
-- [ ] Prisma schema (User, Document models)
+- [ ] Drizzle schema (User, Document models)
 - [ ] Environment config module
 - [ ] ESLint + Prettier config
 - [ ] CI pipeline (GitHub Actions)
@@ -485,5 +485,8 @@ Track decisions Thomas makes during implementation for future ADRs. When Thomas 
 ### Phase 5+
 
 - **Hocuspocus + Yjs over Socket.io + last-write-wins** — Evaluated LWW (simple but loses data on concurrent edits), custom Yjs sync over Socket.io (educational but reinvents the wheel), and Hocuspocus (purpose-built for TipTap+Yjs, built-in auth/persistence/presence hooks). Chose Hocuspocus because CRDTs are a solved problem — senior engineering judgment is knowing when to integrate vs build. Socket.io was a means to an end, not the goal.
+- **Drizzle ORM over Prisma** — Prisma's `Unsupported("vector(512)")` type can't be indexed, queried, or managed through migrations — every vector operation requires raw SQL and the migration system fights custom pgvector indexes (drift detection). Drizzle has first-class `vector()` columns, HNSW/IVFFlat index definitions, and built-in `cosineDistance` operators — all typed and migration-supported. Evaluated staying on Prisma with raw SQL workarounds (less work now, ongoing friction) vs migrating to Drizzle (2-3 hours mechanical rewrite, clean vector support forever). The codebase is small (10 files, ~38 queries, all straightforward CRUD) and the next major feature (RAG) is entirely vector-based. Relation loading (`include` vs `with`) is nearly identical between the two. Chose to migrate now rather than fight the tooling for the rest of the project.
+- **Voyage AI over OpenAI for embeddings** — Thomas does not want OpenAI association due to their military contract. Voyage-3-lite ($0.02/1M tokens) is Anthropic's recommended embedding partner with better retrieval accuracy than local alternatives. Claude Haiku 4.5 for generation.
+- **All-docs RAG scope over single-doc** — Chat searches all user-accessible documents (owned + shared) by default, with optional documentId param to narrow scope. Minimal extra implementation cost (one WHERE clause difference), significantly more useful feature.
 
 (Continue tracking new decisions here as they come up)

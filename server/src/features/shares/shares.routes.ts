@@ -16,7 +16,7 @@ import { DocumentParamsSchema, DocumentParams } from '../documents/documents.sch
 export async function shareRoutes(app: FastifyInstance): Promise<void> {
   app.addHook('onRequest', authenticate);
 
-  const sharesService = new SharesService(app.prisma);
+  const sharesService = new SharesService(app.db);
 
   // POST /api/documents/:id/shares
   app.post<{ Params: DocumentParams; Body: ShareDocumentBody }>(

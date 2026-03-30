@@ -26,6 +26,6 @@ export default defineConfig([
     },
   },
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '*.js', 'server/prisma.config.ts'],
+    ignores: ['**/dist/**', '**/node_modules/**', '*.js', 'server/drizzle.config.ts'],
   },
 ]);

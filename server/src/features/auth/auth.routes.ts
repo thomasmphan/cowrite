@@ -33,9 +33,7 @@ function clearRefreshTokenCookie(reply: FastifyReply): void {
 }
 
 export async function authRoutes(app: FastifyInstance): Promise<void> {
-  const authService = new AuthService(app.prisma, (payload, options) =>
-    app.jwt.sign(payload, options),
-  );
+  const authService = new AuthService(app.db, (payload, options) => app.jwt.sign(payload, options));
 
   // POST /api/auth/register
   app.post<{ Body: RegisterBody }>(

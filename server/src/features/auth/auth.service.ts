@@ -1,8 +1,10 @@
-import { PrismaClient } from '@prisma/client';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { randomBytes } from 'node:crypto';
 import { ConflictError, UnauthorizedError } from '../../shared/utils/errors.js';
 import { env } from '../../config/env.js';
+import * as schema from '../../db/schema.js';
 
 const SALT_ROUNDS = 12;
 const DEFAULT_REFRESH_TOKEN_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000; // default 7 days in ms
@@ -26,7 +28,7 @@ interface AuthResult {
 
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaClient,
+    private readonly db: NodePgDatabase<typeof schema>,
     private readonly signToken: (
       payload: Record<string, unknown>,
       options?: { expiresIn: string },
@@ -34,16 +36,19 @@ export class AuthService {
   ) {}
 
   async register(email: string, password: string, displayName: string): Promise<AuthResult> {
-    const existing = await this.prisma.user.findUnique({ where: { email } });
+    const existing = await this.db.query.users.findFirst({
+      where: eq(schema.users.email, email),
+    });
     if (existing) {
       throw new ConflictError('Email already registered');
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-    const user = await this.prisma.user.create({
-      data: { email, passwordHash, displayName },
-    });
+    const [user] = await this.db
+      .insert(schema.users)
+      .values({ email, passwordHash, displayName })
+      .returning();
 
     const tokens = await this.generateTokens(user.id);
 
@@ -54,7 +59,9 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<AuthResult> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.db.query.users.findFirst({
+      where: eq(schema.users.email, email),
+    });
     if (!user) {
       throw new UnauthorizedError('Invalid email or password');
     }
@@ -73,15 +80,15 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string): Promise<AuthResult> {
-    const stored = await this.prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
-      include: { user: true },
+    const stored = await this.db.query.refreshTokens.findFirst({
+      where: eq(schema.refreshTokens.token, refreshToken),
+      with: { user: true },
     });
 
     if (!stored || stored.expiresAt < new Date()) {
       if (stored) {
         try {
-          await this.prisma.refreshToken.delete({ where: { id: stored.id } });
+          await this.db.delete(schema.refreshTokens).where(eq(schema.refreshTokens.id, stored.id));
         } catch {
           // Already deleted by concurrent request
         }
@@ -91,7 +98,7 @@ export class AuthService {
 
     // Delete the old token (rotation - each refresh token is single-use)
     try {
-      await this.prisma.refreshToken.delete({ where: { id: stored.id } });
+      await this.db.delete(schema.refreshTokens).where(eq(schema.refreshTokens.id, stored.id));
     } catch {
       // Token already consumed by a concurrent request
       throw new UnauthorizedError('Invalid or expired refresh token');
@@ -110,7 +117,7 @@ export class AuthService {
   }
 
   async logout(refreshToken: string): Promise<void> {
-    await this.prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
+    await this.db.delete(schema.refreshTokens).where(eq(schema.refreshTokens.token, refreshToken));
   }
 
   private async generateTokens(userId: string): Promise<TokenPair> {
@@ -120,9 +127,7 @@ export class AuthService {
 
     const expiresAt = new Date(Date.now() + parseDuration(env.jwt.refreshExpiresIn));
 
-    await this.prisma.refreshToken.create({
-      data: { token: refreshToken, userId, expiresAt },
-    });
+    await this.db.insert(schema.refreshTokens).values({ token: refreshToken, userId, expiresAt });
 
     return { accessToken, refreshToken };
   }
