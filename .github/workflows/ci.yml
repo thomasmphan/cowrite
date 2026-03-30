@@ -42,7 +42,7 @@ jobs:
       - run: npm ci
 
       - name: Run migrations
-        run: npx drizzle-kit migrate
+        run: npx drizzle-kit migrate --verbose
         working-directory: server
       
       - name: Type-check shared
