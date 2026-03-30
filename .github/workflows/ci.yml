@@ -41,8 +41,11 @@ jobs:
       
       - run: npm ci
 
+      - name: Debug - test DB connection and vector extension
+        run: psql $DATABASE_URL -c "SELECT version();" -c "CREATE EXTENSION IF NOT EXISTS vector;" -c "SELECT extname FROM pg_extension;"
+
       - name: Run migrations
-        run: npx drizzle-kit migrate --verbose
+        run: npx drizzle-kit migrate
         working-directory: server
       
       - name: Type-check shared
