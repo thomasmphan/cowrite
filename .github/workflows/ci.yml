@@ -13,7 +13,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16-alpine
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: cowrite
           POSTGRES_PASSWORD: cowrite
@@ -41,12 +41,8 @@ jobs:
       
       - run: npm ci
 
-      - name: Generate Prisma client
-        run: npx prisma generate
-        working-directory: server
-      
       - name: Run migrations
-        run: npx prisma migrate deploy
+        run: npx drizzle-kit migrate
         working-directory: server
       
       - name: Type-check shared
